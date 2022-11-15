@@ -10,6 +10,27 @@ namespace MPPTSunDevice
         public string SerialPortName { get; init; }
         private ModbusRtuClient client;
 
+        public enum WorkloadType:ushort
+        {
+            Delay_0=0,
+            Delay_1=1, 
+            Delay_2=2,
+            Delay_3=3,
+            Delay_4=4,
+            Delay_5=5,
+            Delay_6=6,
+            Delay_7=7,
+            Delay_8=8,
+            Delay_9=9,
+            Delay_10=10,
+            Delay_11=11,
+            Delay_12=12,
+            Delay_13=13,
+            Delay_14=14,
+            Manual=15,
+            Debug=16,
+            AlwaysOn=17
+        }
         private SolarChargeController(string serialPortName)
         {
             SerialPortName = serialPortName;
@@ -44,6 +65,11 @@ namespace MPPTSunDevice
         public ushort ReadWorkloadType()
         {
             return readData<ushort>(0xe01d, 1)[0];
+        }
+
+        public void WriteWorkloadType(WorkloadType type)
+        {
+            client.WriteSingleRegister(1,0xe01d,(ushort)type);
         }
 
         public float ReadBatterySOC()

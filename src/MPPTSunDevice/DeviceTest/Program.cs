@@ -24,25 +24,34 @@ DeviceClient iotDevice = DeviceClient.CreateFromConnectionString(cnn);
 
 while (true)
 {
-    DeviceTelemetryMessage content = new DeviceTelemetryMessage();
-    var panel = device.ReadPanel();
-    content.SolarPanel_V = panel.v;
-    content.SolarPanel_W = panel.w;
-    content.SolarPanel_A = panel.a;
+    try
+    {
+        DeviceTelemetryMessage content = new DeviceTelemetryMessage();
+        var panel = device.ReadPanel();
+        content.SolarPanel_V = panel.v;
+        content.SolarPanel_W = panel.w;
+        content.SolarPanel_A = panel.a;
 
-    var l = device.ReadLoad();
-    content.Load_A = l.a;
-    content.Load_V = l.v;
-    content.Load_W = l.w;
+        var l = device.ReadLoad();
+        content.Load_A = l.a;
+        content.Load_V = l.v;
+        content.Load_W = l.w;
 
-    content.Battery_V = device.ReadBatteryVoltage();
-    MemoryStream ms = new MemoryStream();
-    JsonSerializer.Serialize<DeviceTelemetryMessage>(ms, content);
-    ms.Position = 0;
-    Message msg = new Message(ms);
-    await iotDevice.SendEventAsync(msg);
+        content.Battery_V = device.ReadBatteryVoltage();
+        MemoryStream ms = new MemoryStream();
+        JsonSerializer.Serialize<DeviceTelemetryMessage>(ms, content);
+        ms.Position = 0;
+        Message msg = new Message(ms);
+        await iotDevice.SendEventAsync(msg);
 
-    Console.WriteLine("Device Message Sent");
+        Console.WriteLine("Device Message Sent");
+    }
+    catch (Exception ex)
+    {
+
+        Console.WriteLine(ex);
+    }
+    
     await Task.Delay(10000);
 }
 
