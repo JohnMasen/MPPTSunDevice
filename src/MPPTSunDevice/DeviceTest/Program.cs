@@ -44,7 +44,7 @@ while (true)
         Message msg = new Message(ms);
         await iotDevice.SendEventAsync(msg);
 
-        Console.WriteLine("Device Message Sent");
+        Console.WriteLine($"{DateTime.Now} Device Message Sent");
     }
     catch (Exception ex)
     {

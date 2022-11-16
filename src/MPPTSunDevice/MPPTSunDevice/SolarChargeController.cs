@@ -47,7 +47,6 @@ namespace MPPTSunDevice
         public float ReadBatteryVoltage()
         {
             var data = readData<ushort>(0x0101, 1);
-            Console.WriteLine($"length={data.Length}");
             return data[0] * 0.1f;
         }
 
