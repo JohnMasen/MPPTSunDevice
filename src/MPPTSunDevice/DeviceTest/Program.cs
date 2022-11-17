@@ -22,6 +22,12 @@ if (cnn==null)
 }
 DeviceClient iotDevice = DeviceClient.CreateFromConnectionString(cnn);
 
+//await Task.Delay(10);
+//device.WriteWorkloadType(SolarChargeController.WorkloadType.Delay_3);
+//Console.WriteLine("workloadtype changed");
+//await Task.Delay(10);
+//Console.WriteLine($"workload type changed to {device.ReadWorkloadType()} ");
+//return;
 while (true)
 {
     try

@@ -68,7 +68,21 @@ namespace MPPTSunDevice
 
         public void WriteWorkloadType(WorkloadType type)
         {
-            client.WriteSingleRegister(1,0xe01d,(ushort)type);
+            try
+            {
+                client.WriteSingleRegister(1, 0xe01d, (ushort)type);
+            }
+            catch(TimeoutException) { } //ignore serial timeout exception, unknown issue in fluent modbus library
+            catch (Exception)
+            {
+
+                throw;
+            }
+            Thread.Sleep(10);
+            if ((ushort)type!=ReadWorkloadType())
+            {
+                throw new InvalidOperationException("Workload change failed");
+            }
         }
 
         public float ReadBatterySOC()
