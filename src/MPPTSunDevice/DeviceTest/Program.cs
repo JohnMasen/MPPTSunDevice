@@ -7,12 +7,15 @@ using System.Configuration;
 using System.Text.Json;
 
 string deviceName = "/dev/ttyUSB0";
+//string deviceName = "COM1";
 using var device=SolarChargeController.OpenDevice(deviceName);
 Console.WriteLine(device.ReadLoad());
 Console.WriteLine(device.ReadBatteryVoltage());
 Console.WriteLine(device.ReadPanel());
 Console.WriteLine($"SOC={device.ReadBatterySOC():##.0%}");
 Console.WriteLine($"Workload type:{device.ReadWorkloadType()}");
+Console.Write($"DC output:");
+Console.WriteLine(device.IsDCOutput ? "On" : "Off");
 
 var config = new ConfigurationBuilder().AddXmlFile("App.config").Build();
 string? cnn = config["IothubConnectionString"];
@@ -22,11 +25,8 @@ if (cnn==null)
 }
 DeviceClient iotDevice = DeviceClient.CreateFromConnectionString(cnn);
 
-//await Task.Delay(10);
-//device.WriteWorkloadType(SolarChargeController.WorkloadType.Delay_3);
-//Console.WriteLine("workloadtype changed");
-//await Task.Delay(10);
-//Console.WriteLine($"workload type changed to {device.ReadWorkloadType()} ");
+//device.SetManualOutput(false);
+//Console.WriteLine("Manual output set complete");
 //return;
 while (true)
 {

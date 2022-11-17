@@ -1,4 +1,5 @@
 ﻿using FluentModbus;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
 namespace MPPTSunDevice
@@ -10,33 +11,33 @@ namespace MPPTSunDevice
         public string SerialPortName { get; init; }
         private ModbusRtuClient client;
 
-        public enum WorkloadType:ushort
+        public enum WorkloadType : ushort
         {
-            Delay_0=0,
-            Delay_1=1, 
-            Delay_2=2,
-            Delay_3=3,
-            Delay_4=4,
-            Delay_5=5,
-            Delay_6=6,
-            Delay_7=7,
-            Delay_8=8,
-            Delay_9=9,
-            Delay_10=10,
-            Delay_11=11,
-            Delay_12=12,
-            Delay_13=13,
-            Delay_14=14,
-            Manual=15,
-            Debug=16,
-            AlwaysOn=17
+            Delay_0 = 0,
+            Delay_1 = 1,
+            Delay_2 = 2,
+            Delay_3 = 3,
+            Delay_4 = 4,
+            Delay_5 = 5,
+            Delay_6 = 6,
+            Delay_7 = 7,
+            Delay_8 = 8,
+            Delay_9 = 9,
+            Delay_10 = 10,
+            Delay_11 = 11,
+            Delay_12 = 12,
+            Delay_13 = 13,
+            Delay_14 = 14,
+            Manual = 15,
+            Debug = 16,
+            AlwaysOn = 17
         }
         private SolarChargeController(string serialPortName)
         {
             SerialPortName = serialPortName;
             client = new ModbusRtuClient();
             client.BaudRate = 9600;
-            client.Connect(serialPortName,ModbusEndianness.BigEndian);
+            client.Connect(serialPortName, ModbusEndianness.BigEndian);
         }
 
         public static SolarChargeController OpenDevice(string serialPortName)
@@ -50,15 +51,15 @@ namespace MPPTSunDevice
             return data[0] * 0.1f;
         }
 
-        public  (float v,float a,float w) ReadLoad()
+        public (float v, float a, float w) ReadLoad()
         {
             var data = readData<ushort>(0x0104, 3);
             return (v: data[0] * 0.1f, a: data[1] * 0.01f, w: data[2]);
         }
-        public (float v,float a,float w) ReadPanel()
+        public (float v, float a, float w) ReadPanel()
         {
             var data = readData<ushort>(0x0107, 3);
-            return (v: data[0] * 0.1f, a: data[1] * 0.01f, w: data[2] );
+            return (v: data[0] * 0.1f, a: data[1] * 0.01f, w: data[2]);
         }
 
         public ushort ReadWorkloadType()
@@ -68,34 +69,57 @@ namespace MPPTSunDevice
 
         public void WriteWorkloadType(WorkloadType type)
         {
-            try
-            {
-                client.WriteSingleRegister(1, 0xe01d, (ushort)type);
-            }
-            catch(TimeoutException) { } //ignore serial timeout exception, unknown issue in fluent modbus library
-            catch (Exception)
-            {
+            //try
+            //{
+            client.WriteSingleRegister(1, 0xe01d, (ushort)type);
+            //}
+            //catch(TimeoutException) { } //ignore serial timeout exception, unknown issue in fluent modbus library
+            //catch (Exception)
+            //{
 
-                throw;
-            }
+            //    throw;
+            //}
             Thread.Sleep(10);
-            if ((ushort)type!=ReadWorkloadType())
+            if ((ushort)type != ReadWorkloadType())
             {
                 throw new InvalidOperationException("Workload change failed");
             }
         }
 
-        public float ReadBatterySOC()
+        /// <summary>
+        /// Change the DC output to On/Off
+        /// </summary>
+        /// <param name="isOutput">turn on/off DC output</param>
+        /// <param name="forceSet">change output mode to manual if required</param>
+        public void SetManualOutput(bool isOutput, bool forceSet = true)
         {
-            return readData<ushort>(0x0100, 1)[0]*0.01f;
+            if (ReadWorkloadType() != 15)
+            {
+                if (forceSet)
+                {
+                    WriteWorkloadType(WorkloadType.Manual);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Could not set output mode, call WriteWorkloadType set output work mode to [Manual] first");
+                }
+            }
+            client.WriteSingleRegister(1, 0x010a, (ushort)(isOutput ? 1 : 0));
         }
 
-        private Span<T> readData<T>(int address,int length) where T : unmanaged
+        public float ReadBatterySOC()
+        {
+            return readData<ushort>(0x0100, 1)[0] * 0.01f;
+        }
+
+        private Span<T> readData<T>(int address, int length) where T : unmanaged
         {
             return client.ReadHoldingRegisters<T>(1, address, length);
         }
 
         #region Dispose
+
+        public bool IsDCOutput => (readData<ushort>(0x0120, 1)[0] & 0b_1000_0000_0000_0000) >0;
 
         
         protected virtual void Dispose(bool disposing)
