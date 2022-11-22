@@ -10,7 +10,7 @@ namespace MPPTSunDevice
 
         public string SerialPortName { get; init; }
         private ModbusRtuClient client;
-
+        private DateTime? lastRun = null;
         public enum WorkloadType : ushort
         {
             Delay_0 = 0,
@@ -69,16 +69,7 @@ namespace MPPTSunDevice
 
         public void WriteWorkloadType(WorkloadType type)
         {
-            //try
-            //{
-            client.WriteSingleRegister(1, 0xe01d, (ushort)type);
-            //}
-            //catch(TimeoutException) { } //ignore serial timeout exception, unknown issue in fluent modbus library
-            //catch (Exception)
-            //{
-
-            //    throw;
-            //}
+            writeData(0xe01d, (ushort)type);
             Thread.Sleep(10);
             if ((ushort)type != ReadWorkloadType())
             {
@@ -114,13 +105,35 @@ namespace MPPTSunDevice
 
         private Span<T> readData<T>(int address, int length) where T : unmanaged
         {
-            return client.ReadHoldingRegisters<T>(1, address, length);
+            lock (client)
+            {
+                waitForDeviceReady();
+                return client.ReadHoldingRegisters<T>(1, address, length);
+            }
+            
+        }
+
+        private void writeData(int address,ushort data) 
+        {
+            lock (client)
+            {
+                waitForDeviceReady();
+                client.WriteSingleRegister(1, address, data);
+            }
+            
         }
 
         #region Dispose
 
         public bool IsDCOutput => (readData<ushort>(0x0120, 1)[0] & 0b_1000_0000_0000_0000) >0;
 
+        private void waitForDeviceReady()
+        {
+            if (lastRun.HasValue && (lastRun.Value-DateTime.Now).TotalMilliseconds<10)
+            {
+                Thread.Sleep(10);
+            }
+        }
         
         protected virtual void Dispose(bool disposing)
         {

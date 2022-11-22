@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using MPPTSunDevice;
 using System.Configuration;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 string deviceName = "/dev/ttyUSB0";
 //string deviceName = "COM1";
@@ -24,10 +25,12 @@ if (cnn==null)
     return;
 }
 DeviceClient iotDevice = DeviceClient.CreateFromConnectionString(cnn);
-
+await iotDevice.SetMethodHandlerAsync("SetOutput", SetOutput, null);
 //device.SetManualOutput(false);
 //Console.WriteLine("Manual output set complete");
 //return;
+
+
 while (true)
 {
     try
@@ -61,5 +64,11 @@ while (true)
     await Task.Delay(10000);
 }
 
-
+Task<MethodResponse> SetOutput(MethodRequest methodRequest, object userContext)
+{
+    var para = System.Text.Json.JsonSerializer.Deserialize<SetOutputMethodParameters>(methodRequest.DataAsJson);
+    device.SetManualOutput(para.IsOn);
+    Console.WriteLine($"SetOutput={para.IsOn}");
+    return Task.FromResult(new MethodResponse(200));
+}
 
