@@ -77,6 +77,7 @@ namespace MPPTSunDevice
             }
         }
 
+
         /// <summary>
         /// Change the DC output to On/Off
         /// </summary>
