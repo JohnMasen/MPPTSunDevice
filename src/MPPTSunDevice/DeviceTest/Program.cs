@@ -10,6 +10,8 @@ using System.Text.Json.Serialization;
 
 string deviceName = "/dev/ttyUSB0";
 //string deviceName = "COM1";
+string modelID = "dtmi:solar_charge_controller;1";
+
 using var device=SolarChargeController.OpenDevice(deviceName);
 Console.WriteLine(device.ReadLoad());
 Console.WriteLine(device.ReadBatteryVoltage());
@@ -26,7 +28,7 @@ if (cnn==null)
 {
     return;
 }
-DeviceClient iotDevice = DeviceClient.CreateFromConnectionString(cnn);
+DeviceClient iotDevice = DeviceClient.CreateFromConnectionString(cnn,TransportType.Mqtt,new ClientOptions() { ModelId= modelID });
 await iotDevice.SetMethodHandlerAsync("SetOutput", SetOutput, null);
 await iotDevice.SetMethodHandlerAsync("TurnOnOutput", TurnOnOutput, null);
 //device.SetManualOutput(false);

@@ -1,0 +1,63 @@
+{
+  "@id": "dtmi:solar_charge_controller;1",
+  "@context": "dtmi:dtdl:context;2",
+  "@type": "Interface",
+  "contents": [
+    {
+      "@type": "Telemetry",
+      "name": "status",
+      "schema": {
+        "@type": "Object",
+        "fields": [
+          {
+            "name": "SolarPanel_V",
+            "schema": "float"
+          },
+          {
+            "name": "SolarPanel_A",
+            "schema": "float"
+          },
+          {
+            "name": "SolarPanel_W",
+            "schema": "float"
+          },
+          {
+            "name": "Battery_V",
+            "schema": "float"
+          },
+          {
+            "name": "Load_V",
+            "schema": "float"
+          },
+          {
+            "name": "Load_A",
+            "schema": "float"
+          },
+          {
+            "name": "Load_W",
+            "schema": "float"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "Command",
+      "name": "TurnOnOutput",
+      "displayName": "TurnOnOutput",
+      "description": "Turn on output with specified minutes",
+      "request": {
+        "name": "until",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {
+              "name": "duration",
+              "schema": "integer",
+              "description": "the minutes to keep on"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
