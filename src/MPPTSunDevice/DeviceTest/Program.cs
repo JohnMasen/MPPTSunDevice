@@ -59,7 +59,15 @@ while (true)
         await iotDevice.SendEventAsync(msg);
 
         Console.WriteLine($"{DateTime.Now} Device Message Sent");
+    }
+    catch (Exception ex)
+    {
 
+        Console.WriteLine(ex);
+    }
+
+    try
+    { 
         if (outputStopTime.HasValue)//timed turn on exists
         {
             if (DateTime.Now>= outputStopTime.Value)//expired

@@ -43,7 +43,7 @@
     {
       "@type": "Command",
       "name": "TurnOnOutput",
-      "displayName": "TurnOnOutput",
+      "displayName": "Turn On Device",
       "description": "Turn on output with specified minutes",
       "request": {
         "name": "until",
