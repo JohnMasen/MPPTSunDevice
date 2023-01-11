@@ -11,31 +11,31 @@
         "fields": [
           {
             "name": "SolarPanel_V",
-            "schema": "float"
+            "schema": "volt"
           },
           {
             "name": "SolarPanel_A",
-            "schema": "float"
+            "schema": "ampere"
           },
           {
             "name": "SolarPanel_W",
-            "schema": "float"
+            "schema": "watt"
           },
           {
             "name": "Battery_V",
-            "schema": "float"
+            "schema": "volt"
           },
           {
             "name": "Load_V",
-            "schema": "float"
+            "schema": "volt"
           },
           {
             "name": "Load_A",
-            "schema": "float"
+            "schema": "ampera"
           },
           {
             "name": "Load_W",
-            "schema": "float"
+            "schema": "watt"
           }
         ]
       }
@@ -43,7 +43,7 @@
     {
       "@type": "Command",
       "name": "TurnOnOutput",
-      "displayName": "Turn On Device",
+      "displayName": "Turn On DC Output",
       "description": "Turn on output with specified minutes",
       "request": {
         "name": "until",
@@ -53,11 +53,23 @@
             {
               "name": "duration",
               "schema": "integer",
-              "description": "the minutes to keep on"
+              "description": "the minutes to keep turned on"
             }
           ]
         }
       }
+    },
+    {
+      "@type": [
+        "Property",
+        "Voltage"
+      ],
+      "name": "MinVoltage",
+      "displayName": "MinVoltage",
+      "description": "Cutoff voltage for battery.",
+      "schema": "double",
+      "unit": "volt",
+      "writable": true
     }
   ]
 }

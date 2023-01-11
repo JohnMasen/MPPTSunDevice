@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 string deviceName = "/dev/ttyUSB0";
 //string deviceName = "COM1";
 string modelID = "dtmi:solar_charge_controller;1";
+float minVoltage = 12f;
 
 using var device=SolarChargeController.OpenDevice(deviceName);
 Console.WriteLine(device.ReadLoad());
@@ -34,10 +35,27 @@ await iotDevice.SetMethodHandlerAsync("TurnOnOutput", TurnOnOutput, null);
 //device.SetManualOutput(false);
 //Console.WriteLine("Manual output set complete");
 //return;
+Console.Write("Registering property callback...");
+await iotDevice.SetDesiredPropertyUpdateCallbackAsync(propertyUpdateCallback, null);
+Console.WriteLine("done");
 
+async Task propertyUpdateCallback(TwinCollection desiredProperties, object userContext)
+{
+    int? tmp = desiredProperties["MinVoltage"];
+    if (tmp.HasValue)
+    {
+        minVoltage = tmp.Value;
+        Console.WriteLine($"Get MinVoltage={minVoltage}");
+    }
+    TwinCollection myCollection = new TwinCollection();
+    myCollection["MinVoltage"] = minVoltage;
+    await iotDevice.UpdateReportedPropertiesAsync(myCollection);
+    Console.WriteLine($"Reported MinVoltage={minVoltage}");
+}
 
 while (true)
 {
+    bool isBatteryTooLow=false;
     try
     {
         DeviceTelemetryMessage content = new DeviceTelemetryMessage();
@@ -52,6 +70,8 @@ while (true)
         content.Load_W = l.w;
 
         content.Battery_V = device.ReadBatteryVoltage();
+        isBatteryTooLow = content.Battery_V <= minVoltage;
+
         MemoryStream ms = new MemoryStream();
         JsonSerializer.Serialize<DeviceTelemetryMessage>(ms, content);
         ms.Position = 0;
@@ -65,36 +85,51 @@ while (true)
 
         Console.WriteLine(ex);
     }
-
-    try
-    { 
-        if (outputStopTime.HasValue)//timed turn on exists
+    if (isBatteryTooLow)//battery too low, force turn off output
+    {
+        if (device.IsDCOutput==true)
         {
-            if (DateTime.Now>= outputStopTime.Value)//expired
+            Console.WriteLine("Battery low! turn off DC output.");
+            device.SetManualOutput(false);
+            outputStopTime = null;
+            TwinCollection twinCollection = new TwinCollection();
+            twinCollection["TurnOnUntil"] = null;
+            await iotDevice.UpdateReportedPropertiesAsync(twinCollection);
+        }
+    }
+    else
+    {
+        try
+        {
+            if (outputStopTime.HasValue)//timed turn on exists
             {
-                device.SetManualOutput(false);
-                Console.WriteLine("Automatically Turned off");
-                TwinCollection twinCollection = new TwinCollection();
-                twinCollection["TurnOnUntil"] = null;
-                await iotDevice.UpdateReportedPropertiesAsync(twinCollection);
-                outputStopTime = null;
-            }
-            else
-            {
-                if (device.IsDCOutput == false)//turn on if not exists
+                if (DateTime.Now >= outputStopTime.Value)//expired
                 {
-                    device.SetManualOutput(true);
-                    Console.WriteLine("Automatically Turned on");
+                    device.SetManualOutput(false);
+                    Console.WriteLine("Automatically Turned off");
+                    TwinCollection twinCollection = new TwinCollection();
+                    twinCollection["TurnOnUntil"] = null;
+                    await iotDevice.UpdateReportedPropertiesAsync(twinCollection);
+                    outputStopTime = null;
+                }
+                else
+                {
+                    if (device.IsDCOutput == false)//turn on if not exists
+                    {
+                        device.SetManualOutput(true);
+                        Console.WriteLine("Automatically Turned on");
+                    }
                 }
             }
-        }
-        
-    }
-    catch (Exception ex)
-    {
 
-        Console.WriteLine(ex);
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine(ex);
+        }
     }
+    
     
     await Task.Delay(10000);
 }
