@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPPTSunDevice", "MPPTSunDev
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeviceTest", "DeviceTest\DeviceTest.csproj", "{347F37A9-F230-4CB6-9353-207C3DB8E655}"
 EndProject
+Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "Device-ESP32C3", "Device-ESP32C3\Device-ESP32C3.nfproj", "{747389A9-7E03-48DC-B5F5-BF190FFB649C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,12 @@ Global
 		{347F37A9-F230-4CB6-9353-207C3DB8E655}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{347F37A9-F230-4CB6-9353-207C3DB8E655}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{347F37A9-F230-4CB6-9353-207C3DB8E655}.Release|Any CPU.Build.0 = Release|Any CPU
+		{747389A9-7E03-48DC-B5F5-BF190FFB649C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{747389A9-7E03-48DC-B5F5-BF190FFB649C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{747389A9-7E03-48DC-B5F5-BF190FFB649C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{747389A9-7E03-48DC-B5F5-BF190FFB649C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{747389A9-7E03-48DC-B5F5-BF190FFB649C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{747389A9-7E03-48DC-B5F5-BF190FFB649C}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
