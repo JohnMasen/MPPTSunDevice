@@ -8,12 +8,18 @@ using System.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-string deviceName = "/dev/ttyUSB0";
+
 //string deviceName = "COM1";
 string modelID = "dtmi:solar_charge_controller;1";
 float minVoltage = 12f;
 
-using var device=SolarChargeController.OpenDevice(deviceName);
+
+
+var config = new ConfigurationBuilder().AddXmlFile("App.config").Build();
+string? cnn = config["IothubConnectionString"];
+string deviceName = config["SerialPort"]??"/dev/ttyUSB0";
+
+using var device = SolarChargeController.OpenDevice(deviceName);
 Console.WriteLine(device.ReadLoad());
 Console.WriteLine(device.ReadBatteryVoltage());
 Console.WriteLine(device.ReadPanel());
@@ -22,8 +28,7 @@ Console.WriteLine($"Workload type:{device.ReadWorkloadType()}");
 Console.Write($"DC output:");
 Console.WriteLine(device.IsDCOutput ? "On" : "Off");
 
-var config = new ConfigurationBuilder().AddXmlFile("App.config").Build();
-string? cnn = config["IothubConnectionString"];
+
 DateTime? outputStopTime = null;
 if (cnn==null)
 {

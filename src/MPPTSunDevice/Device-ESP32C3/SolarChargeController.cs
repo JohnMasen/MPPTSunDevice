@@ -1,5 +1,8 @@
-﻿using nF.Modbus.Client;
+﻿using Microsoft.Extensions.Logging;
+using nanoFramework.Logging;
+using nF.Modbus.Client;
 using System;
+using System.IO.Ports;
 using System.Threading;
 
 namespace Device_ESP32C3
@@ -12,6 +15,7 @@ namespace Device_ESP32C3
         private ModbusClient client;
         private DateTime lastRun;
         private bool hasLastRun = false;
+        private ILogger log;
         public enum WorkloadType : ushort
         {
             Delay_0 = 0,
@@ -36,9 +40,9 @@ namespace Device_ESP32C3
 
         public struct DataResult
         {
-            float v;
-            float a;
-            float w;
+            public float v;
+            public float a;
+            public float w;
             
 
             public DataResult(float v, float a, float w) : this()
@@ -51,10 +55,9 @@ namespace Device_ESP32C3
         private SolarChargeController(string serialPortName)
         {
             SerialPortName = serialPortName;
-            client = new ModbusClient(serialPortName, 9600);
-            //client.
-            //client.BaudRate = 9600;
-            //client.Connect(serialPortName, ModbusEndianness.BigEndian);
+            SerialPort port = new SerialPort(serialPortName,9600,Parity.None,8,StopBits.One);
+            client = new ModbusClient(port);
+            log = this.GetCurrentClassLogger();
         }
 
         public static SolarChargeController OpenDevice(string serialPortName)

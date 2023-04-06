@@ -1,0 +1,39 @@
+﻿<html>
+<head>
+    <title>
+        电池放电
+    </title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#getStatus").click(function () {
+                $.get("api/getStatus", function (data, status) {
+                    $("#status").html(
+                        "放电功率：" + data.LastStatus.Load_W +
+                        "<br>放电电压：" + data.LastStatus.Load_V +
+                        "<br>放电电流：" + data.LastStatus.Load_A +
+                        "<br>电池电压：" + data.LastStatus.Battery_V +
+                        "<br>电池电流：" + data.LastStatus.Battery_A +
+                        "<br>充电功率：" + data.LastStatus.Battery_W +
+                        "<br>LastUpdate：" + data.LastUpdate +
+                        "<br>TurnDCOnUntil：" + data.TurnDCOnUntil
+                    );
+                });
+            });
+            $("#discharge").click(function () {
+                $.get("api/discharge?duration=" + $("#duration").val(), function (data, status) {
+                    $("#status").html(data);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="status">
+    </div>
+    <button id="getStatus">获取状态</button>
+    <br>
+    <input type="text" id="duration">
+    <button id="discharge">启动放电</button>
+</body>
+</html>
