@@ -349,3 +349,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /src/MPPTSunDevice/DeviceTest/App.config
+/src/MPPTSunDevice/Device-ESP32C3/IotConfig.txt
