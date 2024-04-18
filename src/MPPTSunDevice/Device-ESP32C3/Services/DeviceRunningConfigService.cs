@@ -17,6 +17,7 @@ namespace Device_ESP32C3.Services
         }
 
         internal static DeviceRunningConfigService Default = new DeviceRunningConfigService();
+        public int FaildReads { get; set; } = 0;
 
     }
 }

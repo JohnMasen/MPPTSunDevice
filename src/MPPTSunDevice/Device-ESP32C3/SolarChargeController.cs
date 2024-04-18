@@ -150,10 +150,12 @@ namespace Device_ESP32C3
 
         private void waitForDeviceReady()
         {
-            if (hasLastRun && (lastRun - DateTime.UtcNow.AddHours(8)).TotalMilliseconds < 10)
+            if (hasLastRun && (DateTime.UtcNow-lastRun).TotalMilliseconds < 10)
             {
                 Thread.Sleep(10);
             }
+            hasLastRun = true;
+            lastRun = DateTime.UtcNow;
         }
 
 

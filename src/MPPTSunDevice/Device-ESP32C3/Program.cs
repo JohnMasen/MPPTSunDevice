@@ -12,10 +12,10 @@ using System.Threading;
 using Device_ESP32C3.Services;
 using Device_ESP32C3.Web;
 using Iot.Device.DhcpServer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using nanoFramework.Azure.Devices.Client;
 using nanoFramework.Azure.Devices.Shared;
-using nanoFramework.DependencyInjection;
 using nanoFramework.Hardware.Esp32;
 using nanoFramework.Hosting;
 using nanoFramework.Json;
@@ -40,6 +40,7 @@ namespace Device_ESP32C3
             WaitIP();
             ConfigService config = new ConfigService();
 
+
             DebugLogger logger = new DebugLogger("SCCD");
             //create test host
             var host = Host.CreateDefaultBuilder().ConfigureServices
@@ -50,7 +51,8 @@ namespace Device_ESP32C3
                             cfg.AddSingleton(typeof(ConfigService),config);
                             cfg.AddHostedService(typeof(DeviceControlService));
                             cfg.AddSingleton(typeof(SCCDeviceService));
-                            cfg.AddHostedService(typeof(IotClientService));
+                            //cfg.AddHostedService(typeof(IotClientService));
+                            //cfg.AddSingleton(typeof(IoTRunningStatus), IoTRunningStatus.Default);
                             //cfg.AddHostedService(typeof(RandomRunningConfigService));
                         })
                         .Build();

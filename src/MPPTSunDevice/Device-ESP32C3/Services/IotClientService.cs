@@ -17,8 +17,9 @@ namespace Device_ESP32C3.Services
         DeviceClient iotClient;
         ILogger logger { get; init; }
         DeviceRunningConfigService deviceConfig;
+        IoTRunningStatus iotStatus;
 
-        public IotClientService(ConfigService c,ILogger logger, DeviceRunningConfigService deviceControlConfig)
+        public IotClientService(ConfigService c,ILogger logger, DeviceRunningConfigService deviceControlConfig,IoTRunningStatus ioTRunningStatus)
         {
             config = c;
             iotClient = new DeviceClient(
@@ -32,21 +33,26 @@ namespace Device_ESP32C3.Services
             iotClient.TwinUpdated += IotClient_TwinUpdated;
             this.logger= logger;
             deviceConfig = deviceControlConfig;
+            iotStatus = ioTRunningStatus;
         }
 
         private void IotClient_TwinUpdated(object sender, nanoFramework.Azure.Devices.Shared.TwinUpdateEventArgs e)
         {
             logger.LogTrace($"device twin updated");
+            handleTwin(iotClient, e.Twin);
+        }
+        private void handleTwin(DeviceClient device, TwinCollection data)
+        {
             float minV;
-            if (e.Twin.Contains("MinVoltage"))
+            if (data.Contains("MinVoltage"))
             {
-                if(float.TryParse(e.Twin["MinVoltage"].ToString(), out minV))
+                if (float.TryParse(data["MinVoltage"].ToString(), out minV))
                 {
                     TwinCollection r = new() { { "MinVoltage", minV } };
-                    ((DeviceClient)sender).UpdateReportedProperties(r);
+                    device.UpdateReportedProperties(r);
                     deviceConfig.OverDischargeVoltage = minV;
                 }
-                
+
             }
         }
 
@@ -59,48 +65,58 @@ namespace Device_ESP32C3.Services
 
         protected override void ExecuteAsync()
         {
+            StartWatchDog();
             while (!CancellationRequested)
             {
-                //connect to IoTHuB if not connected, reigster device twin update callback
+                iotStatus.IsConnected = iotClient.IsConnected;
+                //connect to IoTHuB if not connected
                 if (!iotClient.IsConnected)
                 {
                     iotClient.Open();
-                    CancellationTokenSource cts = new CancellationTokenSource(10000);
-                    try
-                    {
-                        iotClient.GetTwin(cts.Token);
-                    }
-                    catch (Exception)
-                    {
-
-                    }
                     
+                    for (int i = 0; i < 3; i++)
+                    {
+                        CancellationTokenSource cts = new CancellationTokenSource(10000);
+                        try
+                        {
+                            var data = iotClient.GetTwin(cts.Token);
+                            handleTwin(iotClient, data.Properties.Desired);
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
                 }
-                
+                iotStatus.IsConnected = iotClient.IsConnected;
                 //update device twin
 
                 //iothub connection watchdog init
 
-
-
+                //upload iot data
+                try
+                {
+                    if ((deviceConfig.LastUpdate-DateTime.UtcNow).TotalSeconds<10)
+                    {
+                        string msg = JsonSerializer.SerializeObject(deviceConfig.LastStatus);
+                        iotClient.SendMessage(msg);
+                        DateTime localNow = DateTime.UtcNow.AddHours(8);
+                        iotStatus.LastReportTime = localNow;
+                        iotStatus.LastConnected = localNow;
+                    }
+                }
+                catch (Exception)
+                {
+                    iotClient.Close();
+                    iotStatus.IsConnected = iotClient.IsConnected;
+                }
+                
 
                 Thread.Sleep(10000);//
             }
         }
-        private void handleDeviceTwin(Twin data)
-        {
-            float minV;
-            bool minVValid = false;
-            if (data.Properties.Desired.Contains("MinVoltage"))
-            {
-                if(float.TryParse(data.Properties.Desired["MinVoltage"].ToString(), out minV))
-                {
-                    deviceConfig.OverDischargeVoltage = minV;
-                }
-                logger.LogInformation($"MinV={minV},Twin={data.ToJson()}");
-            }
-        }
-        private void StartWatchDog(int timeout, Func<bool> callbacl)
+
+        private void StartWatchDog()
         {
             
         }

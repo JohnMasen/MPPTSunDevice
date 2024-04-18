@@ -1,39 +1,54 @@
 ﻿<html>
 <head>
     <title>
-        电池放电
+        太阳能管理
     </title>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            $("#getStatus").click(function () {
-                $.get("api/getStatus", function (data, status) {
-                    $("#status").html(
-                        "放电功率：" + data.LastStatus.Load_W +
-                        "<br>放电电压：" + data.LastStatus.Load_V +
-                        "<br>放电电流：" + data.LastStatus.Load_A +
-                        "<br>电池电压：" + data.LastStatus.Battery_V +
-                        "<br>电池电流：" + data.LastStatus.Battery_A +
-                        "<br>充电功率：" + data.LastStatus.Battery_W +
-                        "<br>LastUpdate：" + data.LastUpdate +
-                        "<br>TurnDCOnUntil：" + data.TurnDCOnUntil
-                    );
-                });
-            });
+            $("#getStatus").click(function () { refreshStatus(); });
             $("#discharge").click(function () {
                 $.get("api/discharge?duration=" + $("#duration").val(), function (data, status) {
                     $("#status").html(data);
                 });
             });
+            refreshStatus();
         });
+        function refreshStatus() {
+            $.get("api/getStatus", function (data, status) {
+                $("#status").html(
+                    "放电功率：" + data.LastStatus.Load_W +
+                    "<br>放电电压：" + data.LastStatus.Load_V +
+                    "<br>放电电流：" + data.LastStatus.Load_A +
+                    "<br>" +
+                    "<br>电池电压：" + data.LastStatus.Battery_V +
+                    "<br>" +
+                    "<br>电池板电压：" + data.LastStatus.SolarPanel_V +
+                    "<br>电池板电流：" + data.LastStatus.SolarPanel_A +
+                    "<br>电池板功率：" + data.LastStatus.SolarPanel_W +
+                    "<br>LastUpdate：" + data.LastUpdate +
+                    "<br>TurnDCOnUntil：" + data.TurnDCOnUntil +
+            "<br>FailCount:" + data.FaildReads
+                );
+            });
+            $.get("api/getIoTStatus", function (data, status) {
+                $("#iotstatus").html(
+                    "IsConnected：" + data.IsConnected +
+                    "最后连接时间：" + data.LastConnected+
+                    "最后上传时间：" + data.LastReportTime
+                );
+            });
+        }
     </script>
 </head>
 <body>
     <div id="status">
     </div>
+    <div id="iotstatus">
+    </div>
     <button id="getStatus">获取状态</button>
     <br>
     <input type="text" id="duration">
-    <button id="discharge">启动放电</button>
+    <button id="discharge">启动放电(分钟)</button>
 </body>
 </html>
