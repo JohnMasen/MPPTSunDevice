@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.IO.Ports;
+﻿using System.IO.Ports;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace Device_ESP32C3.SerialTool

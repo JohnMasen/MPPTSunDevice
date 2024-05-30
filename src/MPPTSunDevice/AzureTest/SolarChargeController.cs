@@ -1,12 +1,11 @@
 ﻿//using Iot.Device.Modbus.Client;
-using Microsoft.Extensions.Logging;
-using nanoFramework.Logging;
+using nanoFramework.Hardware.Esp32;
 using nF.Modbus.Client;
 using System;
 using System.IO.Ports;
 using System.Threading;
 
-namespace Device_ESP32C3
+namespace AzureTest
 {
     internal class SolarChargeController:IDisposable
     {
@@ -16,7 +15,6 @@ namespace Device_ESP32C3
         private ModbusClient client;
         private DateTime lastRun;
         private bool hasLastRun = false;
-        private ILogger log;
         public enum WorkloadType : ushort
         {
             Delay_0 = 0,
@@ -58,7 +56,6 @@ namespace Device_ESP32C3
             SerialPortName = serialPortName;
             SerialPort port = new SerialPort(serialPortName,9600,Parity.None,8,StopBits.One);
             client = new ModbusClient(port);
-            log = this.GetCurrentClassLogger();
         }
 
         public static SolarChargeController OpenDevice(string serialPortName)

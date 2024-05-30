@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Text;
 
-namespace Device_ESP32C3
+namespace AzureTest
 {
     internal class IoTHuBCert
     {

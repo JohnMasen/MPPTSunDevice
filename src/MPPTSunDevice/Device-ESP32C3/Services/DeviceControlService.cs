@@ -16,12 +16,12 @@ namespace Device_ESP32C3.Services
         //private const int MAX_FAIL_COUNT = 3;
 
         //private int failCount = 0;
-        public DeviceControlService(SCCDeviceService sCCDevice,DeviceRunningConfigService configService,ILogger loggerService ) 
+        public DeviceControlService(SCCDeviceService sCCDevice, DeviceRunningConfigService configService, ILogger loggerService)
         {
             deviceService = sCCDevice;
             running = configService;
             logger = loggerService;
-            ShutdownTimeout= TimeSpan.FromSeconds(3);
+            ShutdownTimeout = TimeSpan.FromSeconds(3);
         }
 
         protected override void ExecuteAsync()
@@ -34,32 +34,39 @@ namespace Device_ESP32C3.Services
                     running.LastStatus = readStatus();
                     running.LastUpdate = DateTime.UtcNow;
                     //failCount = 0;
+                    if (running.LastStatus == null)
+                    {
+                        running.FaildReads++;
+                    }
                 }
                 catch (Exception)
                 {
                     running.FaildReads++;
                 }
+                if (running.LastStatus != null)// the device may randomly return error response, modbus library will return null when CRC error
+                {
+                    //disable DC output if battery is over discharged
+                    if (running.LastStatus.Battery_V <= running.OverDischargeVoltage && deviceService.Device.IsDCOutput)
+                    {
+                        deviceService.Device.SetManualOutput(false);
+                        logger.LogInformation("Battery power low, turn off DC output");
+                        running.TurnDCOnUntil = DateTime.MinValue;
+                    }
+                    if (running.TurnDCOnUntil > DateTime.UtcNow && deviceService.Device.IsDCOutput == false)
+                    {
+                        deviceService.Device.SetManualOutput(true);
+                        logger.LogInformation("Turn DC requested, turning DC on");
+                    }
+                    if (running.TurnDCOnUntil > DateTime.MinValue && running.TurnDCOnUntil <= DateTime.UtcNow && deviceService.Device.IsDCOutput)
+                    {
+                        deviceService.Device.SetManualOutput(false);
+                        logger.LogInformation("DC output timedout, turning DC off");
+                    }
+                }
 
-                //disable DC output if battery is over discharged
-                if (running.LastStatus.Battery_V <= running.OverDischargeVoltage && deviceService.Device.IsDCOutput)
-                {
-                    deviceService.Device.SetManualOutput(false);
-                    logger.LogInformation("Battery power low, turn off DC output");
-                    running.TurnDCOnUntil = DateTime.MinValue;
-                }
-                if (running.TurnDCOnUntil > DateTime.UtcNow && deviceService.Device.IsDCOutput == false)
-                {
-                    deviceService.Device.SetManualOutput(true);
-                    logger.LogInformation("Turn DC requested, turning DC on");
-                }
-                if (running.TurnDCOnUntil <= DateTime.UtcNow && deviceService.Device.IsDCOutput)
-                {
-                    deviceService.Device.SetManualOutput(false);
-                    logger.LogInformation("DC output timedout, turning DC off");
-                }
                 Thread.Sleep(2000);
             }
-            
+
 
 
         }

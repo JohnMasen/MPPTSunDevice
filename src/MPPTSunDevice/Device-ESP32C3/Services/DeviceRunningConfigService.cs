@@ -9,7 +9,7 @@ namespace Device_ESP32C3.Services
         public float MaxVoltage { get; set; } = 14.4f;
         public DeviceTelemetryMessage LastStatus { get; set; }
         public DateTime LastUpdate { get; set; }
-        public DateTime TurnDCOnUntil { get; set; }
+        public DateTime TurnDCOnUntil { get; set; } = DateTime.MinValue;
 
         public void TurnDCOn(TimeSpan duration)
         {

@@ -1,0 +1,6 @@
+{
+  "IotHub": "myhub.azure-devices.cn",
+  "DeviceID": "mydevice",
+  "SASKey": "mykey",
+  "ModelID": "myModelID(remove this line if modelid is not used)"
+}
