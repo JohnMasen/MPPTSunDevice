@@ -350,3 +350,4 @@ MigrationBackup/
 .ionide/
 /src/MPPTSunDevice/DeviceTest/App.config
 /src/MPPTSunDevice/Device-ESP32C3/IotConfig.txt
+/src/MPPTSunDevice/AzureTest/IOTConfigFiles/iotconfig.json
